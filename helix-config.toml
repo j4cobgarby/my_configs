@@ -1,0 +1,35 @@
+theme = "github_dark"
+
+[editor]
+line-number = "relative"
+middle-click-paste = false
+idle-timeout = 0
+
+[editor.statusline]
+mode.normal = "normal"
+mode.insert = "insert"
+mode.select = "select"
+
+left = ["spinner", "file-modification-indicator", "mode"]
+center = ["read-only-indicator", "file-name", "version-control"]
+right = ["diagnostics", "register", "position"]
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.whitespace]
+render = "none"
+
+[editor.whitespace.characters]
+space = "·"
+nbsp = "⍽"
+tab = "→"
+newline = "⏎"
+tabpad = "·" # Tabs will look like "→···" (depending on tab width)
+
+[editor.indent-guides]
+render = true
+character = "╎" # Some characters that work well: "▏", "┆", "┊", "⸽"
+skip-levels = 1
