@@ -1,0 +1,9 @@
+import = [
+    "~/.config/alacritty/themes/themes/hyper.toml"
+]
+
+[font]
+size = 8
+normal = { family = "CaskaydiaCove NFM" }
+
+
