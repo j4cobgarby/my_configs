@@ -1,15 +1,35 @@
+vim.opt.termguicolors = true
+
 vim.g.mapleader = ','
-vim.wo.foldmethod = "syntax"
+
 vim.wo.cursorline = true
 vim.wo.relativenumber = true
 vim.wo.number = true
+vim.wo.linebreak = true
+vim.wo.wrap = true
+
+vim.o.tabstop = 4 -- \t is 4 chars wide
+vim.o.expandtab = true -- tab key inserts spaces, not \t
+vim.o.softtabstop = 4 -- 4 char width for space-tabs
+vim.o.shiftwidth = 4 -- indenting tab width
 
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 	pattern = { "*.c", "*.h", "*.cpp", "*.hpp", "*.cc" },
 	callback = function(ev)
-		vim.lsp.start({ name = 'clangd-server', cmd = { 'clangd' } })
+		vim.lsp.start({ name = 'clangd-server', cmd = { 'clangd', '--fallback-style=Microsoft' } })
 	end
 })
+
+--vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
+--    pattern = {"*.c", "*.h", "*.cpp", "*.hpp", "*.cc"},
+--    callback = function(ev)
+--        vim.lsp.start({
+--            name = "ccls",
+--            cmd = {"ccls"},
+--            root_dir = vim.fs.dirname(vim.fs.find({"Makefile", "compile_commands.json"}, {upward = true})[1]),            
+--        })
+--    end
+--})
 
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -52,7 +72,8 @@ require("lazy").setup({
 		"kelly-lin/ranger.nvim",
 		config = function()
 			require("ranger-nvim").setup({ replace_netrw = true })
-			vim.api.nvim_set_keymap("n", " f", "", {
+			vim.api.nvim_set_keymap("n", "  ", "", {
+				desc = "File Browser",
 				noremap = true,
 				callback = function()
 					require("ranger-nvim").open(true)
@@ -69,12 +90,6 @@ require("lazy").setup({
 		opts = {}
 	},
 	{
-		'gen740/SmoothCursor.nvim',
-		config = function()
-			require('smoothcursor').setup()
-		end
-	},
-	{
 		'romgrk/barbar.nvim',
 		init = function() vim.g.barbar_auto_setup = false end,
 		opts = {
@@ -85,7 +100,7 @@ require("lazy").setup({
 				filetype = {
 					enabled = false,
 				},
-				separator = { left = '{', right = '}' },
+				separator = { left = '>', right = '<' },
 				separator_at_end = false,
 			}
 		},
@@ -94,12 +109,46 @@ require("lazy").setup({
     		'willothy/moveline.nvim',
     		build = 'make',
 	},
+	{
+		"nvim-telescope/telescope.nvim",
+		dependencies = {
+			"nvim-lua/plenary.nvim"
+		}
+	},
+    {
+        "wellle/context.vim",
+    },
+	{
+		"mcchrish/zenbones.nvim",
+		dependencies = {"rktjmp/lush.nvim"},
+	},  
 	"plan9-for-vimspace/acme-colors",
 	"huyvohcmc/atlas.vim",
 	'alligator/accent.vim',
 	"ourway/vim-bruin",
 	"andreypopp/vim-colors-plain",
 })
+
+require("telescope").setup({
+	pickers = {
+		lsp_references = {theme = "cursor"},
+		lsp_implementations = {theme = "cursor"},
+		lsp_definitions = {theme = "cursor"},
+		treesitter = {theme = "ivy"},
+        buffers = {theme = "cursor"},
+	}
+})
+
+local tele = require("telescope.builtin")
+vim.keymap.set("n", " f", tele.find_files, {desc = "File Finder"})
+vim.keymap.set("n", " g", tele.live_grep, {desc = "Live Grep"})
+vim.keymap.set("n", " b", tele.buffers, {desc = "Tele buffers"})
+
+vim.keymap.set("n", "gr", tele.lsp_references, {desc = "Show references"})
+vim.keymap.set("n", "gd", tele.lsp_implementations, {desc = "Goto definition(s)"})
+vim.keymap.set("n", "gD", tele.lsp_definitions, {desc = "Goto declaration(s)"})
+
+vim.keymap.set("n", "gt", tele.treesitter, {desc = "Show treesitter"})
 
 local moveline = require('moveline')
 vim.keymap.set('n', '<M-k>', moveline.up)
@@ -149,8 +198,6 @@ lspconfig.clangd.setup {
 	cmd = { "clangd", "--offset-encoding=utf-16" },
 }
 
-require 'lspconfig'.lua_ls.setup {}
-
 -- Use LspAttach autocommand to only map the following keys
 -- after the language server attaches to the current buffer
 vim.api.nvim_create_autocmd('LspAttach', {
@@ -161,54 +208,29 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
 		-- Buffer local mappings.
 		-- See `:help vim.lsp.*` for documentation on any of the below functions
-		vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { buffer = ev.buf, desc = "Goto declaration" })
-		vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { buffer = ev.buf, desc = "Goto definition" })
+		--vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { buffer = ev.buf, desc = "Goto declaration" })
+		--vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { buffer = ev.buf, desc = "Goto definition" })
 		vim.keymap.set('n', 'K', vim.lsp.buf.hover, { buffer = ev.buf, desc = "Hover info" })
 		vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, { buffer = ev.buf, desc = "Goto implementation" })
 		vim.keymap.set('n', '<space>w', function()
 			print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 		end, { buffer = ev.buf, desc = "View workspace dirs" })
-		vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition,
+		vim.keymap.set('n', 'gC', vim.lsp.buf.type_definition,
 			{ buffer = ev.buf, desc = "Goto _type_ definition" })
 		vim.keymap.set('n', '<space>r', vim.lsp.buf.rename, { buffer = ev.buf, desc = "Rename this" })
 		vim.keymap.set('n', '<space>c', vim.lsp.buf.code_action, { buffer = ev.buf, desc = "Do code action" })
-		vim.keymap.set('n', 'gr', vim.lsp.buf.references, { buffer = ev.buf, desc = "List all references" })
 		vim.keymap.set('n', '<space>F', function()
 			vim.lsp.buf.format { async = true }
 		end, { buffer = ev.buf, desc = "Format" })
 	end,
 })
 
-local smth = require("smoothcursor")
+vim.opt.background = "light"
+vim.cmd('colorscheme forestbones')
 
-smth.setup({
-	cursor = "?",
-	speed = 30,
-	texthl = "SmoothCursor",
-})
+---- NEOVIDE STUFF ----
 
-local autocmd = vim.api.nvim_create_autocmd
-
-local curs_setup = function()
-	local cols = {
-		n = 'Green',
-		v = 'Yellow',
-		V = 'LightYellow',
-		i = 'LightBlue',
-	}
-
-	local colour = cols[vim.fn.mode()]
-	if colour == nil then
-		colour = 'White'
-	end
-
-	vim.api.nvim_set_hl(0, 'SmoothCursor', { ctermfg = colour })
-	vim.fn.sign_define('smoothcursor', { text = vim.fn.mode() })
+if vim.g.neovide then
+    vim.o.guifont = "CaskaydiaCove NFM:h10"
+    vim.g.neovide_cursor_animation_length = 0
 end
-
-autocmd({ 'ModeChanged' }, { callback = curs_setup })
-
-curs_setup()
-
-vim.cmd('colorscheme plain')
-vim.api.nvim_set_hl(0, 'SmoothCursor', { fg = '#ffff00', ctermfg = 'Yellow' })

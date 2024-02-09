@@ -34,3 +34,6 @@ zstyle ':completion:*:(ssh|scp|ftp|sftp):*' users $users
 export PATH="$PATH:/home/garby/.local/share/coursier/bin"
 export PATH="$PATH:/home/garby/clion-2023.3.2/bin"
 
+# Install ruby gems to ~gems
+export GEM_HOME="$HOME/gems"
+export PATH="$HOME/gems/bin:$PATH"
